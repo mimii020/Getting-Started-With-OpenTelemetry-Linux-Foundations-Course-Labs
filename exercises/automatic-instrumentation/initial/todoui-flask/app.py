@@ -3,6 +3,9 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import logging
 import requests
 import os
+from opentelemetry import trace
+
+tracer = trace.get_tracer("todo.tracer")
 
 app = Flask(__name__)
 logging.getLogger(__name__)
@@ -32,10 +35,13 @@ def index():
 def add():
 
     if request.method == 'POST':
-        new_todo = request.form['todo']
-        logging.info("POST  %s/todos/%s",app.config['BACKEND_URL'],new_todo)
-        response = requests.post(app.config['BACKEND_URL']+new_todo)
-    return redirect(url_for('index'))
+        with tracer.start_as_current_span("add") as span:
+
+            new_todo = request.form['todo']
+            span.set_attribute("todo.value",new_todo)
+            logging.info("POST  %s/todos/%s",app.config['BACKEND_URL'],new_todo)
+            response = requests.post(app.config['BACKEND_URL']+new_todo)
+        return redirect(url_for('index'))
 
 @app.route('/delete', methods=['POST'])
 def delete():

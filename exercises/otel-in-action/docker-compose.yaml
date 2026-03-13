@@ -119,7 +119,7 @@ services:
 
   # Prometheus
   prometheus:
-    image: ${PROMETHEUS_IMAGE}
+    image: ${PROMETSSHEUS_IMAGE}
     networks:
       - todonet
     command:
